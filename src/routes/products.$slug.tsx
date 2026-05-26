@@ -85,7 +85,7 @@ function ProductDetail() {
           <p className="mt-5 text-muted-foreground">{product.description}</p>
 
           <ul className="mt-5 grid grid-cols-2 gap-2 text-sm">
-            {product.features.map((f) => (
+            {product.features.map((f: string) => (
               <li key={f} className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-primary" /> {f}</li>
             ))}
           </ul>
