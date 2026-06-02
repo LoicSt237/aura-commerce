@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VendorRouteImport } from './routes/vendor'
 import { Route as ProductsRouteImport } from './routes/products'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as FavRouteImport } from './routes/fav'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -25,6 +27,16 @@ const VendorRoute = VendorRouteImport.update({
 const ProductsRoute = ProductsRouteImport.update({
   id: '/products',
   path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FavRoute = FavRouteImport.update({
+  id: '/fav',
+  path: '/fav',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutRoute = CheckoutRouteImport.update({
@@ -58,6 +70,8 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/fav': typeof FavRoute
+  '/login': typeof LoginRoute
   '/products': typeof ProductsRouteWithChildren
   '/vendor': typeof VendorRoute
   '/products/$slug': typeof ProductsSlugRoute
@@ -67,6 +81,8 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/fav': typeof FavRoute
+  '/login': typeof LoginRoute
   '/products': typeof ProductsRouteWithChildren
   '/vendor': typeof VendorRoute
   '/products/$slug': typeof ProductsSlugRoute
@@ -77,6 +93,8 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/fav': typeof FavRoute
+  '/login': typeof LoginRoute
   '/products': typeof ProductsRouteWithChildren
   '/vendor': typeof VendorRoute
   '/products/$slug': typeof ProductsSlugRoute
@@ -88,6 +106,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/cart'
     | '/checkout'
+    | '/fav'
+    | '/login'
     | '/products'
     | '/vendor'
     | '/products/$slug'
@@ -97,6 +117,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/cart'
     | '/checkout'
+    | '/fav'
+    | '/login'
     | '/products'
     | '/vendor'
     | '/products/$slug'
@@ -106,6 +128,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/cart'
     | '/checkout'
+    | '/fav'
+    | '/login'
     | '/products'
     | '/vendor'
     | '/products/$slug'
@@ -116,6 +140,8 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
+  FavRoute: typeof FavRoute
+  LoginRoute: typeof LoginRoute
   ProductsRoute: typeof ProductsRouteWithChildren
   VendorRoute: typeof VendorRoute
 }
@@ -134,6 +160,20 @@ declare module '@tanstack/react-router' {
       path: '/products'
       fullPath: '/products'
       preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fav': {
+      id: '/fav'
+      path: '/fav'
+      fullPath: '/fav'
+      preLoaderRoute: typeof FavRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkout': {
@@ -191,9 +231,21 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
+  FavRoute: FavRoute,
+  LoginRoute: LoginRoute,
   ProductsRoute: ProductsRouteWithChildren,
   VendorRoute: VendorRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

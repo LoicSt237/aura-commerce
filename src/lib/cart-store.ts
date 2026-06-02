@@ -66,4 +66,4 @@ export const cartTotals = (items: CartItem[]) => {
 };
 
 export const formatPrice = (n: number) =>
-  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(n);
+  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "XOF" }).format(n);

@@ -1,7 +1,8 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { Search, ShoppingCart, Heart, User, Menu, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useCart, cartTotals } from "@/lib/cart-store";
+import { useAuth, auth } from "@/lib/auth-store";
 import { categories } from "@/lib/products";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,10 +12,21 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 export function Header() {
+  const authState = useAuth();
   const state = useCart();
   const { count } = cartTotals(state.items);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (search.trim()) {
+      navigate({ to: "/products", search: { q: search, category: "" } });
+      setSearch("");
+    }
+  };
 
   const nav = [
     { to: "/", label: "Accueil" },
@@ -43,7 +55,7 @@ export function Header() {
               <div className="my-2 h-px bg-border" />
               <p className="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Catégories</p>
               {categories.map((c) => (
-                <Link key={c.slug} to="/products" search={{ category: c.slug }} onClick={() => setOpen(false)}
+                <Link key={c.slug} to="/products" search={{ category: c.slug, q: "" }} onClick={() => setOpen(false)}
                   className="rounded-md px-3 py-2 text-sm hover:bg-accent">
                   <span className="mr-2">{c.icon}</span>{c.name}
                 </Link>
@@ -73,12 +85,23 @@ export function Header() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          <div className="relative hidden md:block">
+          <form onSubmit={handleSearch} className="relative hidden md:block">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Rechercher un produit, une marque…" className="h-9 w-64 pl-9 lg:w-80" />
-          </div>
-          <Button variant="ghost" size="icon" className="md:hidden"><Search className="h-5 w-5" /></Button>
-          <Button variant="ghost" size="icon"><Heart className="h-5 w-5" /></Button>
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher un produit, une marque…"
+              className="h-9 w-64 pl-9 lg:w-80"
+            />
+          </form>
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={handleSearch}>
+            <Search className="h-5 w-5" />
+          </Button>
+          <Button variant="ghost" size="icon" asChild>
+            <Link to="/fav">
+              <Heart className="h-5 w-5" />
+            </Link>
+          </Button>
           <Button variant="ghost" size="icon" asChild>
             <Link to="/cart" className="relative">
               <ShoppingCart className="h-5 w-5" />
@@ -89,9 +112,17 @@ export function Header() {
               )}
             </Link>
           </Button>
-          <Button variant="outline" size="sm" className="hidden sm:inline-flex">
-            <User className="h-4 w-4" /> Connexion
-          </Button>
+          {authState.loggedIn ? (
+            <Button variant="outline" size="sm" className="hidden sm:inline-flex" onClick={() => auth.logout()}>
+              <User className="h-4 w-4" /> Déconnexion
+            </Button>
+          ) : (
+            <Button variant="outline" size="sm" className="hidden sm:inline-flex" asChild>
+              <Link to="/login">
+                <User className="h-4 w-4" /> Connexion
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
     </header>
