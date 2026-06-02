@@ -2,26 +2,13 @@ import { useSyncExternalStore } from "react";
 
 type AdminAuthState = { vendorUnlocked: boolean; adminUnlocked: boolean };
 
-const STORAGE_KEY = "aura-admin-auth-v1";
 const PASSWORD = "LumiereStore0ne";
 
 let state: AdminAuthState = { vendorUnlocked: false, adminUnlocked: false };
 const listeners = new Set<() => void>();
 
-if (typeof window !== "undefined") {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) state = JSON.parse(raw);
-  } catch {}
-}
-
 function set(next: AdminAuthState) {
   state = next;
-  if (typeof window !== "undefined") {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch {}
-  }
   listeners.forEach((l) => l());
 }
 

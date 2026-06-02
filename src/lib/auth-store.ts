@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { adminAuth } from "@/lib/admin-auth";
 
 type AuthState = { loggedIn: boolean; email?: string };
 
@@ -40,6 +41,8 @@ export const auth = {
     set({ loggedIn: true, email });
   },
   logout() {
+    adminAuth.lockVendor();
+    adminAuth.lockAdmin();
     set({ loggedIn: false });
   },
 };
