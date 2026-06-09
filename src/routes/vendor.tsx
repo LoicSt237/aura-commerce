@@ -2,6 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useEffect, useState } from "react";
+import { useAdminAuth, adminAuth } from "@/lib/admin-auth";
+import { toast } from "sonner";
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer,
   XAxis, YAxis, Tooltip, CartesianGrid, Legend,
@@ -11,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import {
   TrendingUp, TrendingDown, DollarSign, ShoppingBag, Users, Package,
-  ArrowUpRight, Plus,
+  ArrowUpRight, Plus, Lock,
 } from "lucide-react";
 import { products } from "@/lib/products";
 import { formatPrice } from "@/lib/cart-store";
@@ -60,6 +64,55 @@ const statusVariant: Record<string, string> = {
 };
 
 function VendorPage() {
+  const { vendorUnlocked } = useAdminAuth();
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleUnlock = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    setTimeout(() => {
+      if (adminAuth.unlockVendor(password)) {
+        toast.success("Accès vendeur déverrouillé");
+        setPassword("");
+      } else {
+        toast.error("Mot de passe incorrect");
+      }
+      setLoading(false);
+    }, 500);
+  };
+
+  if (!vendorUnlocked) {
+    return (
+      <div className="container mx-auto flex flex-col items-center px-4 py-20">
+        <div className="mx-auto max-w-md rounded-3xl border border-border bg-card p-8 shadow-lg">
+          <div className="mb-8 text-center">
+            <Lock className="mx-auto mb-4 h-12 w-12 text-primary" />
+            <h1 className="text-2xl font-bold">Espace Vendeur Verrouillé</h1>
+            <p className="mt-2 text-sm text-muted-foreground">Saisissez le mot de passe pour accéder au tableau de bord</p>
+          </div>
+
+          <form onSubmit={handleUnlock} className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Mot de passe</label>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full bg-gradient-primary shadow-glow" disabled={loading}>
+              {loading ? "Vérification..." : "Déverrouiller"}
+            </Button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 animate-fade-in">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">

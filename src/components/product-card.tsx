@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Heart, Star, ShoppingCart } from "lucide-react";
 import type { Product } from "@/lib/products";
-import { cart, formatPrice } from "@/lib/cart-store";
+import { cart, useCart, formatPrice } from "@/lib/cart-store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -13,6 +13,8 @@ const badgeMap = {
 };
 
 export function ProductCard({ product }: { product: Product }) {
+  const state = useCart();
+  const isWishlisted = state.wishlist.includes(product.id);
   const discount = product.oldPrice
     ? Math.round((1 - product.price / product.oldPrice) * 100)
     : 0;
@@ -32,9 +34,9 @@ export function ProductCard({ product }: { product: Product }) {
             )}
           </div>
           <button
-            onClick={(e) => { e.preventDefault(); cart.toggleWishlist(product.id); }}
+            onClick={(e) => { e.preventDefault(); cart.toggleWishlist(product.id); toast.success(isWishlisted ? "Retiré des favoris" : "Ajouté aux favoris"); }}
             className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/80 backdrop-blur transition-colors hover:bg-background">
-            <Heart className="h-4 w-4" />
+            <Heart className={`h-4 w-4 ${isWishlisted ? "fill-destructive text-destructive" : ""}`} />
           </button>
         </div>
       </Link>

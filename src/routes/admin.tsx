@@ -2,6 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useEffect, useState } from "react";
+import { useAdminAuth, adminAuth } from "@/lib/admin-auth";
+import { toast } from "sonner";
 import {
   LineChart, Line, BarChart, Bar, ResponsiveContainer,
   XAxis, YAxis, Tooltip, CartesianGrid,
@@ -9,7 +13,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Users, Store, Package, DollarSign, ShieldCheck, MoreHorizontal } from "lucide-react";
+import { Users, Store, Package, DollarSign, ShieldCheck, MoreHorizontal, Lock } from "lucide-react";
 import { formatPrice } from "@/lib/cart-store";
 
 export const Route = createFileRoute("/admin")({
@@ -32,6 +36,55 @@ const topVendors = [
 ];
 
 function AdminPage() {
+  const { adminUnlocked } = useAdminAuth();
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleUnlock = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    setTimeout(() => {
+      if (adminAuth.unlockAdmin(password)) {
+        toast.success("Accès administrateur déverrouillé");
+        setPassword("");
+      } else {
+        toast.error("Mot de passe incorrect");
+      }
+      setLoading(false);
+    }, 500);
+  };
+
+  if (!adminUnlocked) {
+    return (
+      <div className="container mx-auto flex flex-col items-center px-4 py-20">
+        <div className="mx-auto max-w-md rounded-3xl border border-border bg-card p-8 shadow-lg">
+          <div className="mb-8 text-center">
+            <Lock className="mx-auto mb-4 h-12 w-12 text-primary" />
+            <h1 className="text-2xl font-bold">Espace Admin Verrouillé</h1>
+            <p className="mt-2 text-sm text-muted-foreground">Saisissez le mot de passe pour accéder à l'administration</p>
+          </div>
+
+          <form onSubmit={handleUnlock} className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Mot de passe</label>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full bg-gradient-primary shadow-glow" disabled={loading}>
+              {loading ? "Vérification..." : "Déverrouiller"}
+            </Button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 animate-fade-in">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">

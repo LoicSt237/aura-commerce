@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect  } from "react";
 import { products, categories } from "@/lib/products";
 import { ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,8 @@ import { SlidersHorizontal, X } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+const FILTERS_STORAGE_KEY = "products-filters";
+const defaultPrice = [0, 100000];
 
 export const Route = createFileRoute("/products")({
   head: () => ({
@@ -19,15 +21,48 @@ export const Route = createFileRoute("/products")({
     ],
   }),
   component: ProductsPage,
+  validateSearch: (search) => ({
+    q: (search.q as string) || "",
+    category: (search.category as string) || "",
+  }),
 });
+function getSavedFilters() {
+  if (typeof window === "undefined") return {
+    cats: [],
+    price: defaultPrice,
+    sort: "featured",
+  };
 
+  try {
+    const saved = localStorage.getItem(FILTERS_STORAGE_KEY);
+    if (!saved) return {
+      cats: [],
+      price: defaultPrice,
+      sort: "featured",
+    };
+    return JSON.parse(saved) as { cats: string[]; price: number[]; sort: string };
+  } catch {
+    return {
+      cats: [],
+      price: defaultPrice,
+      sort: "featured",
+    };
+  }
+}
 function ProductsPage() {
-  const [cats, setCats] = useState<string[]>([]);
-  const [price, setPrice] = useState<number[]>([0, 600]);
-  const [sort, setSort] = useState("featured");
-  const [filtersOpen, setFiltersOpen] = useState(false);
-
+const { q, category } = Route.useSearch();
+const [cats, setCats] = useState<string[]>(() => category ? [category] : getSavedFilters().cats);
+const [price, setPrice] = useState<number[]>(() => getSavedFilters().price);
+const [sort, setSort] = useState(() => getSavedFilters().sort);
+const [filtersOpen, setFiltersOpen] = useState(false);
+  useEffect(() => {
+  localStorage.setItem(
+    FILTERS_STORAGE_KEY,
+    JSON.stringify({ cats, price, sort }),
+  );
+}, [cats, price, sort]);
   const filtered = products
+    .filter((p) => !q || p.name.toLowerCase().includes(q.toLowerCase()) || p.brand.toLowerCase().includes(q.toLowerCase()))
     .filter((p) => (cats.length ? cats.includes(p.category) : true))
     .filter((p) => p.price >= price[0] && p.price <= price[1])
     .sort((a, b) => {
@@ -54,10 +89,10 @@ function ProductsPage() {
         </div>
       </div>
       <div>
-        <h3 className="mb-3 text-sm font-semibold">Prix · {price[0]}€ – {price[1]}€</h3>
-        <Slider value={price} onValueChange={setPrice} min={0} max={600} step={10} />
+        <h3 className="mb-3 text-sm font-semibold">Prix · {price[0]} fcfa– {price[1]}fcfa</h3>
+        <Slider value={price} onValueChange={setPrice} min={0} max={100000} step={100} />
       </div>
-      <Button variant="outline" className="w-full" onClick={() => { setCats([]); setPrice([0, 600]); }}>
+      <Button variant="outline" className="w-full" onClick={() => { setCats([]); setPrice(defaultPrice);setSort("featured"); }}>
         Réinitialiser
       </Button>
     </div>
